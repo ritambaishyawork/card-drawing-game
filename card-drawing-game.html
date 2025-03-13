@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Card Drawing Game</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #076324;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            margin: 0;
+        }
+
+        h1 {
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+
+        .game-container {
+            max-width: 100%;
+		height: 80vh;
+            margin: 0 auto;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .players-container {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 15px;
+        }
+
+        .player {
+            width: 45%;
+            padding: 5px;
+        }
+
+        .player-name {
+            font-size: 18px;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .score {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .cards-container {
+            position: relative;
+            height: 320px;
+            margin: 10px auto;
+            width: 90%;
+            max-width: 320px;
+        }
+
+        .card {
+            width: 140px;
+            height: 196px;
+            background-color: white;
+            border-radius: 8px;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.5);
+            cursor: pointer;
+            transition: transform 0.3s ease, background-color 0.3s ease;
+        }
+
+        #player1-card {
+            transform: translate(-65%, -50%) rotate(-10deg);
+            z-index: 2;
+        }
+
+        #player2-card {
+            transform: translate(-35%, -50%) rotate(10deg);
+            z-index: 1;
+        }
+
+        .card.picked {
+            z-index: 1;
+        }
+
+        #player1-card.picked {
+            transform: translate(-90%, -40%) rotate(-20deg); /* Move Player 1's card slightly left */
+        }
+
+        #player2-card.picked {
+            transform: translate(-20%, -60%) rotate(10deg); /* Move Player 2's card slightly right */
+        }
+
+        .card.winner {
+            z-index: 10; /* Ensure the winning card is on top */
+            transform: translate(-60%, -40%) scale(1.1) !important; /* Slightly bigger scale */
+            transition: transform 0.5s ease, z-index 0.5s ease; /* Smooth transition */
+        }
+
+        .card.flipped .card-front {
+            display: none;
+        }
+
+        .card.flipped .card-back {
+            display: flex;
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .card-front {
+            background: linear-gradient(135deg, #6f95d6, #3a6fc7);
+		font-size: 80px; /* Adjust size */
+		display: flex;
+		justify-content: center;
+    		align-items: center;
+        }
+
+        .card-front img {
+            width: 80%;
+            height: auto;
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, #eeeeff, #ccccff);
+            color: black;
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 8px;
+        }
+
+        .card-back.hearts {
+            background-color: #ffebee;
+        }
+
+        .card-back.diamonds {
+            background-color: #ffebee;
+        }
+
+        .card-back.clubs {
+            background-color: #e8f5e9;
+        }
+
+        .card-back.spades {
+            background-color: #e8f5e9;
+        }
+
+        .card-value-top {
+            position: absolute;
+            top: 5px;
+            left: 8px;
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .card-value-bottom {
+            position: absolute;
+            bottom: 5px;
+            right: 8px;
+            font-size: 22px;
+            font-weight: bold;
+            transform: rotate(180deg);
+        }
+
+        .card-suit {
+            position: absolute;
+            font-size: 50px;
+            line-height: 1;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .hearts, .diamonds {
+            color: red;
+        }
+
+        .spades, .clubs {
+            color: black;
+        }
+
+        .result {
+            font-size: 18px;
+            font-weight: bold;
+            height: 24px;
+            margin: 15px 0;
+        }
+
+        .play-again-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px auto;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            display: none;
+        }
+
+        .card-highlight {
+            position: absolute;
+            width: 150px;
+            height: 206px;
+        /*  border: 2px dashed #FFD700; */
+            border-radius: 10px;
+            top: -5px;
+            left: -5px;
+        }
+
+        /* Media Queries for Better Mobile Support */
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 20px;
+                margin-bottom: 10px;
+            }
+
+            .game-container {
+                padding: 10px;
+            }
+
+            .player-name {
+                font-size: 16px;
+            }
+
+            .score {
+                font-size: 14px;
+            }
+
+            .card {
+                width: 120px;
+                height: 168px;
+            }
+
+            .card-suit {
+                font-size: 40px;
+            }
+
+            .card-value-top, .card-value-bottom {
+                font-size: 18px;
+            }
+
+            .result {
+                font-size: 16px;
+                height: 20px;
+            }
+
+            .card-highlight {
+                width: 130px;
+                height: 178px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Card Drawing Game</h1>
+    <div class="game-container">
+        <div class="players-container">
+            <div class="player">
+                <div class="player-name">Player 1</div>
+                <div class="score">Score: <span id="player1-score">0</span></div>
+            </div>
+            <div class="player">
+                <div class="player-name">Player 2</div>
+                <div class="score">Score: <span id="player2-score">0</span></div>
+            </div>
+        </div>
+
+        <div class="cards-container" id="cards-container">
+            <div class="card" id="player1-card">
+                <div class="card-highlight"></div>
+                <div class="card-front">
+                    🪼
+                </div>
+                <div class="card-back">
+                    <!-- Card content will be inserted here -->
+                </div>
+            </div>
+            <div class="card" id="player2-card">
+                <div class="card-highlight"></div>
+                <div class="card-front">
+                    🪼
+                </div>
+                <div class="card-back">
+                    <!-- Card content will be inserted here -->
+                </div>
+            </div>
+        </div>
+
+        <div class="result" id="result"></div>
+
+        <button id="play-again" class="play-again-btn">Play Again</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Game variables
+            const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
+            const suitSymbols = {
+                'hearts': '♥',
+                'diamonds': '♦',
+                'clubs': '♣',
+                'spades': '♠'
+            };
+            const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+            const valueMap = {
+                '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10,
+                'J': 11, 'Q': 12, 'K': 13, 'A': 14
+            };
+            
+            let deck = [];
+            let player1Score = 0;
+            let player2Score = 0;
+            let player1Card = null;
+            let player2Card = null;
+            let cardsDrawn = 0;
+            
+            const player1CardElement = document.getElementById('player1-card');
+            const player2CardElement = document.getElementById('player2-card');
+            const resultElement = document.getElementById('result');
+            const player1ScoreElement = document.getElementById('player1-score');
+            const player2ScoreElement = document.getElementById('player2-score');
+            const playAgainButton = document.getElementById('play-again');
+            const cardsContainer = document.getElementById('cards-container');
+            
+            // Initialize game
+            initGame();
+            
+            // Event listeners
+            player1CardElement.addEventListener('click', () => {
+                if (!player1Card && !player1CardElement.classList.contains('flipped')) {
+                    drawCard(1);
+                }
+            });
+            
+            player2CardElement.addEventListener('click', () => {
+                if (!player2Card && !player2CardElement.classList.contains('flipped')) {
+                    drawCard(2);
+                }
+            });
+            
+            playAgainButton.addEventListener('click', () => {
+                resetRound();
+            });
+            
+            // Game functions
+            function initGame() {
+                resetDeck();
+                resetRound();
+            }
+            
+            function resetDeck() {
+                deck = [];
+                for (let suit of suits) {
+                    for (let value of values) {
+                        deck.push({ suit, value });
+                    }
+                }
+                shuffleDeck();
+            }
+            
+            function shuffleDeck() {
+                for (let i = deck.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [deck[i], deck[j]] = [deck[j], deck[i]];
+                }
+            }
+            
+            function resetRound() {
+                // Reset UI
+                player1CardElement.querySelector('.card-back').innerHTML = '';
+                player2CardElement.querySelector('.card-back').innerHTML = '';
+                player1CardElement.classList.remove('flipped', 'picked', 'winner');
+                player2CardElement.classList.remove('flipped', 'picked', 'winner');
+                
+                // Reset card backgrounds
+                player1CardElement.querySelector('.card-back').className = 'card-back';
+                player2CardElement.querySelector('.card-back').className = 'card-back';
+                
+                resultElement.textContent = '';
+                playAgainButton.style.display = 'none';
+                
+                // Reset game state
+                player1Card = null;
+                player2Card = null;
+                cardsDrawn = 0;
+                
+                // Reset deck if needed
+                if (deck.length < 2) {
+                    resetDeck();
+                }
+            }
+            
+            function drawCard(playerNum) {
+                if (deck.length === 0) {
+                    resetDeck();
+                }
+                
+                const card = deck.pop();
+                const cardElement = playerNum === 1 ? player1CardElement : player2CardElement;
+                const cardBackElement = cardElement.querySelector('.card-back');
+                
+                // Add suit class to card background
+                cardBackElement.className = 'card-back ' + card.suit;
+                
+                // Create card content
+                cardBackElement.innerHTML = `
+                    <div class="card-value-top ${card.suit}">${card.value}</div>
+                    <div class="card-suit ${card.suit}">${suitSymbols[card.suit]}</div>
+                    <div class="card-value-bottom ${card.suit}">${card.value}</div>
+                `;
+                
+                // Flip card and slide sideways
+                cardElement.classList.add('flipped', 'picked');
+                
+                // Store card
+                if (playerNum === 1) {
+                    player1Card = card;
+                } else {
+                    player2Card = card;
+                }
+                
+                // Track cards drawn
+                cardsDrawn++;
+                
+                // Check if both cards are drawn
+                if (cardsDrawn === 2) {
+                    setTimeout(checkWinner, 300);
+                }
+            }
+            
+            function checkWinner() {
+                if (!player1Card || !player2Card) return;
+                
+                const player1Value = valueMap[player1Card.value];
+                const player2Value = valueMap[player2Card.value];
+                
+                setTimeout(() => {
+                    if (player1Value > player2Value) {
+                        resultElement.textContent = 'Player 1 wins this round!';
+                        player1Score++;
+                        player1CardElement.classList.add('winner');
+                        player1CardElement.style.zIndex = 10; // Ensure Player 1's card is on top
+                        player2CardElement.style.zIndex = 1; // Ensure Player 2's card is below
+                    } else if (player2Value > player1Value) {
+                        resultElement.textContent = 'Player 2 wins this round!';
+                        player2Score++;
+                        player2CardElement.classList.add('winner');
+                        player2CardElement.style.zIndex = 10; // Ensure Player 2's card is on top
+                        player1CardElement.style.zIndex = 1; // Ensure Player 1's card is below
+                    } else {
+                        resultElement.textContent = 'It\'s a tie!';
+                    }
+
+                    player1ScoreElement.textContent = player1Score;
+                    player2ScoreElement.textContent = player2Score;
+                    playAgainButton.style.display = 'block';
+                }, 500);
+            }
+        });
+    </script>
+</body>
+</html>
